@@ -9,64 +9,37 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
                     source.levels = list(pig = c('pig', 'swine', 'svin', 'svinegylle')),
                     keep.all = FALSE
                     ) {
-  ncc <- ncol(dat)
-  ndum <- 0
+  # get number of initial columns
+  nca <- ncol(dat)
 
   # Application method
   if (app.mthd.name %in% names(dat)) {
-    dat[, app.mthd.name] <- tolower(dat[, app.mthd.name])
-
-    # Convert application method values to standards
-    for (i in 1:length(app.mthd.levels)) {
-      dat[dat[, app.mthd.name] %in% app.mthd.levels[[i]], app.mthd.name] <- names(app.mthd.levels)[i] 
-    }
-
-    # Application method dummy variables
-    aml <- intersect(unique(dat[, app.mthd.name]), names(app.mthd.levels))
-    for (i in aml) {
-      dat[, paste(app.mthd.name, i, sep = '.')] <- 1 * (dat[, app.mthd.name] == i)
-      ndum <- ndum + 1
-    }
-   }
+    # create application method dummy variables
+    dat <- .add_dummy_vars(dat, app.mthd.name, app.mthd.levels)
+  }
 
   # Incorporation
   if (incorp.name %in% names(dat)) {
-    dat[, incorp.name] <- tolower(dat[, incorp.name])
-
-    # Convert incorporation values to standards
-    for (i in 1:length(incorp.levels)) {
-      dat[dat[, incorp.name] %in% incorp.levels[[i]], incorp.name] <- names(incorp.levels)[i] 
-    }
-
-    # Incorporation dummy variables
-    il <- intersect(unique(dat[, incorp.name]), names(incorp.levels))
-    for (i in il) {
-      dat[, paste(incorp.name, i, sep = '.')] <- 1 * (dat[, incorp.name] == i)
-      ndum <- ndum + 1
-    }
-   }
+    # create incorporation dummy variables
+    dat <- .add_dummy_vars(dat, incorp.name, incorp.levels)
+  }
 
   # Source
   if (source.name %in% names(dat)) {
-    dat[, source.name] <- tolower(dat[, source.name])
-
-    # Convert source values to standards
-    for (i in 1:length(source.levels)) {
-      dat[dat[, source.name] %in% source.levels[[i]], source.name] <- names(source.levels)[i] 
-    }
-
-    # Source dummy variables
-    sl <- intersect(unique(dat[, source.name]), names(source.levels))
-    for (i in sl) {
-      dat[, paste(source.name, i, sep = '.')] <- 1 * (dat[, source.name] == i)
-      ndum <- ndum + 1
-    }
+    # create incorporation dummy variables
+    dat <- .add_dummy_vars(dat, source.name, source.levels)
   }
 
+  # get new ncol
+  nco <- ncol(dat)
+
+  # return new data.frame
   if (keep.all) {
-    return(dat)
+    dat
+  } else if (nco > nca) {
+    dat[, nca:nco, drop = FALSE]
   } else {
-    return(dat[, 1:ndum + ncc, drop = FALSE])
+    NULL
   }
 
 }
@@ -75,3 +48,43 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
 #dat
 #prepDat(dat)
 #prepDat(dat, keep.all = TRUE)
+
+.add_dummy_vars <- function(x, col, levels, unknown = c('ignore', 'error', 'keep')) {
+
+    # prepare named vector with known application method levels
+    known_levels <- rep(names(levels), lengths(levels))
+    names(known_levels) <- unlist(levels)
+
+    # check application levels
+    match_levels <- known_levels[tolower(x[, col])]
+    
+    # TODO: add argument to decide what to do with non standard values.
+    #       1) give error (default?) 2) keep  3) remove(?) 4) ignore(?)
+    if (anyNA(unique_levels <- unique(match_levels))) {
+      # what to do with unknown values?
+      switch(unknown[1]
+        , 'ignore' = {
+          unique_levels <- na.exclude(unique_levels)
+        }
+        , 'error' = {
+          na_levels <- unique(x[, col][is.na(match_levels)])
+          stop(paste0('Unknown levels in column ', col,':\n - ',
+            paste(na_levels, sep = '\n - ')))
+        }
+        , 'keep' = {
+          # TODO: what should be done with 'incompatible' names?
+          # so far fix with make.names. Should code in model be able to handle such spaces?
+          match_levels[is.na(match_levels)] <- make.names(x[, col][is.na(match_levels)])
+          unique_levels <- unique(match_levels)
+        }
+        , stop('Argument "unknown" should be one of "ignore", "error" or "keep"')
+      )
+    }
+
+    # add application method dummy variables
+    for (lvl in unique_levels) {
+      x[, paste(col, lvl, sep = '.')] <- as.integer(match_levels == lvl & !is.na(match_levels))
+    }
+
+    return(x)
+}
