@@ -55,8 +55,11 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
     known_levels <- rep(names(levels), lengths(levels))
     names(known_levels) <- unlist(levels)
 
+    # convert column entries to character
+    column_levels <- as.character(x[, col])
+
     # check application levels
-    match_levels <- known_levels[tolower(x[, col])]
+    match_levels <- known_levels[tolower(column_levels)]
     
     # TODO: add argument to decide what to do with non standard values.
     #       1) give error (default?) 2) keep  3) remove(?) 4) ignore(?)
@@ -67,14 +70,14 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
           unique_levels <- na.exclude(unique_levels)
         }
         , 'error' = {
-          na_levels <- unique(x[, col][is.na(match_levels)])
+          na_levels <- unique(column_levels[is.na(match_levels)])
           stop(paste0('Unknown levels in column ', col,':\n - ',
             paste(na_levels, sep = '\n - ')))
         }
         , 'keep' = {
           # TODO: what should be done with 'incompatible' names?
           # so far fix with make.names. Should code in model be able to handle such spaces?
-          match_levels[is.na(match_levels)] <- make.names(x[, col][is.na(match_levels)])
+          match_levels[is.na(match_levels)] <- make.names(column_levels[is.na(match_levels)])
           unique_levels <- unique(match_levels)
         }
         , stop('Argument "unknown" should be one of "ignore", "error" or "keep"')
