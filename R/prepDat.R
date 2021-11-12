@@ -12,6 +12,11 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
   # get number of initial columns
   nca <- ncol(dat)
 
+  # TODO:
+  # guess col names if missing
+  # add argument keep.names (default.names?): provided vs. default names
+  # default names should be default :)
+
   # Application method
   if (app.mthd.name %in% names(dat)) {
     # create application method dummy variables
