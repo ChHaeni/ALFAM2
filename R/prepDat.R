@@ -7,7 +7,7 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
                                            cs = c('closed slot injection', 'cs', 'closed-slot injection', 'deep injection', 'nedf\u00E6ldning p\u00E5 sort jord')),
                     incorp.levels = list(shallow = c('shallow', 'harrow'), deep = c('deep', 'plough', 'plow', 'nedbringning')),
                     source.levels = list(pig = c('pig', 'swine', 'svin', 'svinegylle')),
-                    keep.all = FALSE
+                    keep.all = FALSE, replace.levels = TRUE
                     ) {
   # get number of initial columns
   nca <- ncol(dat)
@@ -37,19 +37,19 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
   # Application method
   if (length(app.mthd.name) == 1L) {
     # create application method dummy variables
-    dat <- .add_dummy_vars(dat, app.mthd.name, app.mthd.levels)
+    dat <- .add_dummy_vars(dat, app.mthd.name, app.mthd.levels, replace.levels)
   }
 
   # Incorporation
   if (length(incorp.name) == 1L) {
     # create incorporation dummy variables
-    dat <- .add_dummy_vars(dat, incorp.name, incorp.levels)
+    dat <- .add_dummy_vars(dat, incorp.name, incorp.levels, replace.levels)
   }
 
   # Source
   if (length(source.name) == 1L) {
     # create incorporation dummy variables
-    dat <- .add_dummy_vars(dat, source.name, source.levels)
+    dat <- .add_dummy_vars(dat, source.name, source.levels, replace.levels)
   }
 
   # get new ncol
@@ -71,7 +71,7 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
 #prepDat(dat)
 #prepDat(dat, keep.all = TRUE)
 
-.add_dummy_vars <- function(x, col, levels) {
+.add_dummy_vars <- function(x, col, levels, replace = TRUE) {
 
     # TODO: 
     #       check column entries
@@ -81,20 +81,26 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
     #       if one has a match -> prefect,
     #       else -> error
 
-    # prepare named vector with known application method levels
-    known_levels <- rep(names(levels), lengths(levels))
-    names(known_levels) <- unlist(levels)
-
     # convert column entries to character
     column_levels <- as.character(x[, col])
 
-    # check application levels
-    match_levels <- known_levels[tolower(column_levels)]
-    
-    # TODO: add argument to decide what to do with non standard values.
-    #       1) give error (default?) 2) keep  3) remove(?) 4) ignore(?)
-    unique_levels <- na.exclude(unique_levels)
+    # should levels be replaced or not?
+    if (replace) {
+      # prepare named vector with known application method levels
+      known_levels <- rep(names(levels), lengths(levels))
+      names(known_levels) <- unlist(levels)
 
+      # check application levels
+      match_levels <- known_levels[tolower(column_levels)]
+
+      # ignore unmatched levels
+      unique_levels <- na.exclude(unique(match_levels))
+    } else {
+      # TODO: does code handle names with spaces etc?
+      match_levels <- column_levels
+      unique_levels <- unique(match_levels)
+    }
+    
     # add application method dummy variables
     for (lvl in unique_levels) {
       x[, paste(col, lvl, sep = '.')] <- as.integer(match_levels == lvl & !is.na(match_levels))
