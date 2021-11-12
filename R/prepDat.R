@@ -19,9 +19,9 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
 
   # column name dictionaries
   dict <- list(
-    app.mthd = '^app(l|lic(ation)?)?[ ._-]me?tho?d?$',
-    incorp = '^inc(o?r?p?(oration)?)?$',
-    man.source = '^(man(ure)?|slur?(ry)?|slry?)([ ._-](s(ou)?r(ce)?|ty?pe?))?$'
+    app.mthd = '^app(l|lic(ation)?)?[ ._-](me?tho?d?|type?)$',
+    incorp = '^inc(o?r?p?(oration)?)?([ ._-](me?tho?d?|type?))?$',
+    man.source = '^(man(ure)?|slur?(ry)?|slry?)([ ._-](s(ou)?r(ce)?|type?))?$'
   )
 
   # Application method
