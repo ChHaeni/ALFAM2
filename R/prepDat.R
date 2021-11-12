@@ -114,7 +114,7 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
       #     if more than one have valid entries throw error
 
     # check if directly matches, otherwise use dict
-    if (!(nm_index <- name %in% tolower(nms))) {
+    if (!any(nm_index <- tolower(nms) %in% name)) {
       nm_index <- grep(rex, tolower(nms))
     }
 
