@@ -17,6 +17,13 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
   # add argument keep.names (default.names?): provided vs. default names
   # default names should be default :)
 
+  # column name dictionaries
+  dict <- list(
+    app.mthd = '^app(l|lic(ation)?)?[ ._-]me?tho?d?$',
+    incorp = '^inc(o?r?p?(oration)?)?$',
+    man.source = '^(man(ure)?|slur?(ry)?|slry?)([ ._-](s(ou)?r(ce)?|ty?pe?))?$'
+  )
+
   # Application method
   if (app.mthd.name %in% names(dat)) {
     # create application method dummy variables
