@@ -22,6 +22,7 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
   # default names should be default :)
 
   # column name dictionaries
+  # TODO: should we also allow app(lication) only?
   dict <- list(
     app.mthd = '^app(l|lic(ation)?)?[ ._-](me?tho?d?|type?)$',
     incorp = '^inc(o?r?p?(oration)?)?([ ._-](me?tho?d?|type?))?$',
@@ -72,6 +73,14 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
 
 .add_dummy_vars <- function(x, col, levels) {
 
+    # TODO: 
+    #       check column entries
+    #       only if col length > 1?
+    #       maybe create function for lines below
+    #       and call it on all columns, then check
+    #       if one has a match -> prefect,
+    #       else -> error
+
     # prepare named vector with known application method levels
     known_levels <- rep(names(levels), lengths(levels))
     names(known_levels) <- unlist(levels)
@@ -99,6 +108,7 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
   if (miss) {
       # TODO: 
       #     check if dummy columns already exist (only if argument is missing)
+      #     ^^^^ we don't need to do this, only issue: column might be replaced...
       #     check if more than one column match
       #     if more than one, check entries?
       #     if more than one have valid entries throw error
