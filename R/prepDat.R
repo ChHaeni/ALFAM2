@@ -12,8 +12,12 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
   # get number of initial columns
   nca <- ncol(dat)
 
+  # get column names
+  nms <- names(dat)
+
   # TODO:
   # guess col names if missing
+  # check if columns have correct entries?!
   # add argument keep.names (default.names?): provided vs. default names
   # default names should be default :)
 
@@ -24,20 +28,25 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
     man.source = '^(man(ure)?|slur?(ry)?|slry?)([ ._-](s(ou)?r(ce)?|type?))?$'
   )
 
+  # check names
+  app.mthd.name <- .check_names(missing(app.mthd.name), app.mthd.name, nms, dict$app.mthd)
+  incorp.name <- .check_names(missing(incorp.name), incorp.name, nms, dict$incorp)
+  source.name <- .check_names(missing(source.name), source.name, nms, dict$man.source)
+
   # Application method
-  if (app.mthd.name %in% names(dat)) {
+  if (length(app.mthd.name) == 1L) {
     # create application method dummy variables
     dat <- .add_dummy_vars(dat, app.mthd.name, app.mthd.levels)
   }
 
   # Incorporation
-  if (incorp.name %in% names(dat)) {
+  if (length(incorp.name) == 1L) {
     # create incorporation dummy variables
     dat <- .add_dummy_vars(dat, incorp.name, incorp.levels)
   }
 
   # Source
-  if (source.name %in% names(dat)) {
+  if (length(source.name) == 1L) {
     # create incorporation dummy variables
     dat <- .add_dummy_vars(dat, source.name, source.levels)
   }
@@ -83,4 +92,25 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
     }
 
     return(x)
+}
+
+# check column names helper function
+.check_names <- function(miss, name, nms, rex) {
+  if (miss) {
+      # TODO: 
+      #     check if dummy columns already exist (only if argument is missing)
+      #     check if more than one column match
+      #     if more than one, check entries?
+      #     if more than one have valid entries throw error
+
+    # check if directly matches, otherwise use dict
+    if (!(nm_index <- name %in% tolower(nms))) {
+      nm_index <- grep(rex, tolower(nms))
+    }
+
+    # return match
+    nms[nm_index]
+  } else {
+    name
+  }
 }
