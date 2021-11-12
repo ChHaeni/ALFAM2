@@ -49,7 +49,7 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
 #prepDat(dat)
 #prepDat(dat, keep.all = TRUE)
 
-.add_dummy_vars <- function(x, col, levels, unknown = c('ignore', 'error', 'keep')) {
+.add_dummy_vars <- function(x, col, levels) {
 
     # prepare named vector with known application method levels
     known_levels <- rep(names(levels), lengths(levels))
@@ -63,26 +63,7 @@ prepDat <- function(dat, app.mthd.name = 'app.mthd', incorp.name = 'incorp', sou
     
     # TODO: add argument to decide what to do with non standard values.
     #       1) give error (default?) 2) keep  3) remove(?) 4) ignore(?)
-    if (anyNA(unique_levels <- unique(match_levels))) {
-      # what to do with unknown values?
-      switch(unknown[1]
-        , 'ignore' = {
-          unique_levels <- na.exclude(unique_levels)
-        }
-        , 'error' = {
-          na_levels <- unique(column_levels[is.na(match_levels)])
-          stop(paste0('Unknown levels in column ', col,':\n - ',
-            paste(na_levels, sep = '\n - ')))
-        }
-        , 'keep' = {
-          # TODO: what should be done with 'incompatible' names?
-          # so far fix with make.names. Should code in model be able to handle such spaces?
-          match_levels[is.na(match_levels)] <- make.names(column_levels[is.na(match_levels)])
-          unique_levels <- unique(match_levels)
-        }
-        , stop('Argument "unknown" should be one of "ignore", "error" or "keep"')
-      )
-    }
+    unique_levels <- na.exclude(unique_levels)
 
     # add application method dummy variables
     for (lvl in unique_levels) {
